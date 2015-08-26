@@ -41,6 +41,7 @@ erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend(
 							cur_frm.add_custom_button(__('Make Maint. Schedule'), this.make_maintenance_schedule);
 						}
 				cur_frm.add_custom_button(__('Make Technician Purchase Invoice'), this.make_purchase_invoice, "icon-truck");
+				cur_frm.add_custom_button(__('Make PO'), this.make_po)
 
 			} else {
 				// un-stop
