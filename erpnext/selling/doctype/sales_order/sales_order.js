@@ -51,9 +51,9 @@ erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend(
 					if(flt(doc.per_billed, 2) < 100) {
 						cur_frm.add_custom_button(__('Invoice'), this.make_sales_invoice).addClass("btn-primary");
 					}
-					cur_frm.add_custom_button(__('Make Technician Purchase Invoice'), this.make_purchase_invoice, "icon-truck");
+					cur_frm.add_custom_button(__('Make Technician Purchase Invoice'), this.make_purchase_invoice, "icon-truck").addClass("btn-primary");
 					//custom button
-					cur_frm.add_custom_button(__('Make PO'), this.make_po)
+					cur_frm.add_custom_button(__('Make PO'), this.make_po).addClass("btn-primary");
 
 			} else {
 				// un-stop
