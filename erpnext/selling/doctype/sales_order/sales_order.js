@@ -4,6 +4,14 @@
 {% include 'selling/sales_common.js' %}
 {% include 'das/das_commons.js' %}
 
+frappe.ui.form.on("Sales Order", {
+	onload: function(frm) {
+		erpnext.queries.setup_queries(frm, "Warehouse", function() {
+			return erpnext.queries.warehouse(frm.doc);
+		});
+	}
+});
+
 erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend({
 	refresh: function(doc, dt, dn) {
 		this._super();
@@ -17,24 +25,19 @@ erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend(
 				// cur_frm.dashboard.add_progress(cint(doc.per_billed) + __("% Billed"),
 				// 	doc.per_billed);
 
-				// delivery note
-				if(flt(doc.per_delivered, 2) < 100 && ["Sales", "Shopping Cart"].indexOf(doc.order_type)!==-1)
-					cur_frm.add_custom_button(__('Make Delivery'), this.make_delivery_note);
-
 				// indent
 				if(!doc.order_type || ["Sales", "Shopping Cart"].indexOf(doc.order_type)!==-1)
-					cur_frm.add_custom_button(__('Make ') + __('Material Request'),
-						this.make_material_request);
+					cur_frm.add_custom_button(__('Material Request'), this.make_material_request);
 
-				// sales invoice
-				if(flt(doc.per_billed, 2) < 100) {
-					cur_frm.add_custom_button(__('Make Invoice'), this.make_sales_invoice);
+				if(flt(doc.per_billed)==0) {
+					cur_frm.add_custom_button(__('Payment'), cur_frm.cscript.make_bank_entry);
 				}
 
 				// stop
 				if(flt(doc.per_delivered, 2) < 100 || doc.per_billed < 100)
 					cur_frm.add_custom_button(__('Stop'), cur_frm.cscript['Stop Sales Order'])
 
+<<<<<<< HEAD
 						// maintenance
 						if(flt(doc.per_delivered, 2) < 100 && ["Sales", "Shopping Cart"].indexOf(doc.order_type)===-1) {
 							cur_frm.add_custom_button(__('Make Maint. Visit'), this.make_maintenance_visit);
@@ -43,6 +46,22 @@ erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend(
 				cur_frm.add_custom_button(__('Make Technician Purchase Invoice'), this.make_purchase_invoice, "icon-truck");
 				//custom button
 				cur_frm.add_custom_button(__('Make PO'), this.make_po)
+=======
+					// maintenance
+					if(flt(doc.per_delivered, 2) < 100 && ["Sales", "Shopping Cart"].indexOf(doc.order_type)===-1) {
+						cur_frm.add_custom_button(__('Maint. Visit'), this.make_maintenance_visit);
+						cur_frm.add_custom_button(__('Maint. Schedule'), this.make_maintenance_schedule);
+					}
+
+					// delivery note
+					if(flt(doc.per_delivered, 2) < 100 && ["Sales", "Shopping Cart"].indexOf(doc.order_type)!==-1)
+						cur_frm.add_custom_button(__('Delivery'), this.make_delivery_note).addClass("btn-primary");
+
+					// sales invoice
+					if(flt(doc.per_billed, 2) < 100) {
+						cur_frm.add_custom_button(__('Invoice'), this.make_sales_invoice).addClass("btn-primary");
+					}
+>>>>>>> 10fc83d36984765fc4e59ec1f7c16cde7efe1385
 
 			} else {
 				// un-stop
@@ -126,6 +145,20 @@ erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend(
 			frm: cur_frm
 		})
 	},
+
+	make_bank_entry: function() {
+		return frappe.call({
+			method: "erpnext.accounts.doctype.journal_entry.journal_entry.get_payment_entry_from_sales_order",
+			args: {
+				"sales_order": cur_frm.doc.name
+			},
+			callback: function(r) {
+				var doclist = frappe.model.sync(r.message);
+				frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
+			}
+		});
+	}
+
 });
 
 // for backward compatibility: combine new and previous states

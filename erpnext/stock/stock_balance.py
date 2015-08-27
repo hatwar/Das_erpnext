@@ -145,7 +145,7 @@ def set_stock_balance_as_per_serial_no(item_code=None, posting_date=None, postin
 
 	bin = frappe.db.sql("""select bin.item_code, bin.warehouse, bin.actual_qty, item.stock_uom
 		from `tabBin` bin, tabItem item
-		where bin.item_code = item.name and item.has_serial_no = 'Yes' %s""" % condition)
+		where bin.item_code = item.name and item.has_serial_no = 1 %s""" % condition)
 
 	for d in bin:
 		serial_nos = frappe.db.sql("""select count(name) from `tabSerial No`
@@ -237,7 +237,7 @@ def repost_all_stock_vouchers():
 
 			doc = frappe.get_doc(voucher_type, voucher_no)
 			if voucher_type=="Stock Entry" and doc.purpose in ["Manufacture", "Repack"]:
-				doc.get_stock_and_rate(force=1)
+				doc.calculate_rate_and_amount(force=1)
 			elif voucher_type=="Purchase Receipt" and doc.is_subcontracted == "Yes":
 				doc.validate()
 

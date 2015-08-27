@@ -41,8 +41,8 @@ class PurchaseInvoice(BuyingController):
 			self.po_required()
 			self.pr_required()
 			self.validate_supplier_invoice()
-			self.validate_advance_jv("advances", "purchase_order")
-			
+			self.validate_advance_jv("Purchase Order")
+
 		self.check_active_purchase_items()
 		self.check_conversion_rate()
 		self.validate_credit_to_acc()
@@ -80,7 +80,7 @@ class PurchaseInvoice(BuyingController):
 	def check_active_purchase_items(self):
 		for d in self.get('items'):
 			if d.item_code:		# extra condn coz item_code is not mandatory in PV
-				if frappe.db.get_value("Item", d.item_code, "is_purchase_item") != 'Yes':
+				if frappe.db.get_value("Item", d.item_code, "is_purchase_item") != 1:
 					msgprint(_("Item {0} is not Purchase Item").format(d.item_code), raise_exception=True)
 
 	def check_conversion_rate(self):
@@ -91,10 +91,12 @@ class PurchaseInvoice(BuyingController):
 			throw(_("Conversion rate cannot be 0 or 1"))
 
 	def validate_credit_to_acc(self):
-		root_type, account_type = frappe.db.get_value("Account", self.credit_to, ["root_type", "account_type"])
-		if root_type != "Liability":
-			frappe.throw(_("Credit To account must be a liability account"))
-		if account_type != "Payable":
+		account = frappe.db.get_value("Account", self.credit_to, ["account_type", "report_type"], as_dict=True)
+
+		if account.report_type != "Balance Sheet":
+			frappe.throw(_("Credit To account must be a Balance Sheet account"))
+
+		if self.supplier and account.account_type != "Payable":
 			frappe.throw(_("Credit To account must be a Payable account"))
 
 	def check_for_stopped_status(self):
@@ -129,7 +131,7 @@ class PurchaseInvoice(BuyingController):
 			}
 		})
 
-		if cint(frappe.db.get_single_value('Buying Settings', 'maintain_same_rate')):
+		if cint(frappe.db.get_single_value('Buying Settings', 'maintain_same_rate')) and not self.is_return:
 			self.validate_rate_with_reference_doc([
 				["Purchase Order", "purchase_order", "po_detail"],
 				["Purchase Receipt", "purchase_receipt", "pr_detail"]
@@ -235,7 +237,7 @@ class PurchaseInvoice(BuyingController):
 			self.update_against_document_in_jv()
 			self.update_prevdoc_status()
 			self.update_billing_status_for_zero_amount_refdoc("Purchase Order")
-			
+
 		self.update_project()
 
 	def make_gl_entries(self):
@@ -257,7 +259,7 @@ class PurchaseInvoice(BuyingController):
 					"against": self.against_expense_account,
 					"credit": self.total_amount_to_pay,
 					"remarks": self.remarks,
-					"against_voucher": self.name,
+					"against_voucher": self.return_against if cint(self.is_return) else self.name,
 					"against_voucher_type": self.doctype,
 				})
 			)
@@ -367,7 +369,7 @@ class PurchaseInvoice(BuyingController):
 	def on_cancel(self):
 		if not self.is_return:
 			from erpnext.accounts.utils import remove_against_link_from_jv
-			remove_against_link_from_jv(self.doctype, self.name, "against_voucher")
+			remove_against_link_from_jv(self.doctype, self.name)
 
 			self.update_prevdoc_status()
 			self.update_billing_status_for_zero_amount_refdoc("Purchase Order")
@@ -413,6 +415,6 @@ def get_expense_account(doctype, txt, searchfield, start, page_len, filters):
 			'txt': "%%%s%%" % frappe.db.escape(txt), 'mcond':get_match_cond(doctype)})
 
 @frappe.whitelist()
-def make_purchase_return(source_name, target_doc=None):
+def make_debit_note(source_name, target_doc=None):
 	from erpnext.controllers.sales_and_purchase_return import make_return_doc
-	return make_return_doc("Purchase Invoice", source_name, target_doc)	
+	return make_return_doc("Purchase Invoice", source_name, target_doc)

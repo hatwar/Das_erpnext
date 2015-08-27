@@ -77,9 +77,6 @@ class calculate_taxes_and_totals(object):
 			if not self.discount_amount_applied:
 				validate_taxes_and_charges(tax)
 				validate_inclusive_tax(tax, self.doc)
-				
-			if self.doc.meta.get_field("is_return") and self.doc.is_return and tax.charge_type == "Actual":
-				tax.tax_amount = -1 * tax.tax_amount
 
 			tax.item_wise_tax_detail = {}
 			tax_fields = ["total", "tax_amount_after_discount_amount",
@@ -222,7 +219,7 @@ class calculate_taxes_and_totals(object):
 
 					# adjust Discount Amount loss in last tax iteration
 					if i == (len(self.doc.get("taxes")) - 1) and self.discount_amount_applied \
-						and self.doc.discount_amount:
+						and self.doc.discount_amount and self.doc.apply_discount_on == "Grand Total":
 							self.adjust_discount_amount_loss(tax)
 
 
@@ -306,9 +303,9 @@ class calculate_taxes_and_totals(object):
 			for tax in self.doc.get("taxes"):
 				if tax.category in ["Valuation and Total", "Total"]:
 					if tax.add_deduct_tax == "Add":
-						self.doc.taxes_and_charges_added += flt(tax.tax_amount)
+						self.doc.taxes_and_charges_added += flt(tax.tax_amount_after_discount_amount)
 					else:
-						self.doc.taxes_and_charges_deducted += flt(tax.tax_amount)
+						self.doc.taxes_and_charges_deducted += flt(tax.tax_amount_after_discount_amount)
 
 			self.doc.round_floats_in(self.doc, ["taxes_and_charges_added", "taxes_and_charges_deducted"])
 

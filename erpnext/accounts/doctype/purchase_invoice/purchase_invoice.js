@@ -20,27 +20,18 @@ erpnext.accounts.PurchaseInvoice = erpnext.buying.BuyingController.extend({
 		this._super();
 
 		// Show / Hide button
-		if(doc.docstatus==1 && doc.outstanding_amount > 0)
-			this.frm.add_custom_button(__('Make Payment Entry'), this.make_bank_entry);
+		this.show_general_ledger();
 
-		if(doc.docstatus==1) {
-			cur_frm.add_custom_button(__('Make Purchase Return'), this.make_purchase_return);
-			
-			cur_frm.add_custom_button(__('View Ledger'), function() {
-				frappe.route_options = {
-					"voucher_no": doc.name,
-					"from_date": doc.posting_date,
-					"to_date": doc.posting_date,
-					"company": doc.company,
-					group_by_voucher: 0
-				};
-				frappe.set_route("query-report", "General Ledger");
-			});
-		}
+		if(!doc.is_return) {
+			if(doc.docstatus==1) {
+				if(doc.outstanding_amount > 0) {
+					this.frm.add_custom_button(__('Payment'), this.make_bank_entry).addClass("btn-primary");
+				}
+				cur_frm.add_custom_button(__('Debit Note'), this.make_debit_note);
+			}
 
-		if(doc.docstatus===0) {
-			cur_frm.add_custom_button(__('From Purchase Order'),
-				function() {
+			if(doc.docstatus===0) {
+				cur_frm.add_custom_button(__('From Purchase Order'), function() {
 					frappe.model.map_current_doc({
 						method: "erpnext.buying.doctype.purchase_order.purchase_order.make_purchase_invoice",
 						source_doctype: "Purchase Order",
@@ -54,8 +45,7 @@ erpnext.accounts.PurchaseInvoice = erpnext.buying.BuyingController.extend({
 					})
 				});
 
-			cur_frm.add_custom_button(__('From Purchase Receipt'),
-				function() {
+				cur_frm.add_custom_button(__('From Purchase Receipt'), function() {
 					frappe.model.map_current_doc({
 						method: "erpnext.stock.doctype.purchase_receipt.purchase_receipt.make_purchase_invoice",
 						source_doctype: "Purchase Receipt",
@@ -66,10 +56,10 @@ erpnext.accounts.PurchaseInvoice = erpnext.buying.BuyingController.extend({
 						}
 					})
 				});
-
+			}
 		}
 	},
-	
+
 	supplier: function() {
 		var me = this;
 		if(this.frm.updating_party_details)
@@ -111,10 +101,10 @@ erpnext.accounts.PurchaseInvoice = erpnext.buying.BuyingController.extend({
 			if(row.purchase_receipt) frappe.model.clear_doc("Purchase Receipt", row.purchase_receipt)
 		})
 	},
-	
-	make_purchase_return: function() {
+
+	make_debit_note: function() {
 		frappe.model.open_mapped_doc({
-			method: "erpnext.accounts.doctype.purchase_invoice.purchase_invoice.make_purchase_return",
+			method: "erpnext.accounts.doctype.purchase_invoice.purchase_invoice.make_debit_note",
 			frm: cur_frm
 		})
 	},
@@ -152,18 +142,28 @@ cur_frm.fields_dict['items'].grid.get_field("item_code").get_query = function(do
 	return {
 		query: "erpnext.controllers.queries.item_query",
 		filters:{
-			'is_purchase_item': 'Yes'
+			'is_purchase_item': 1
 		}
 	}
 }
 
 cur_frm.fields_dict['credit_to'].get_query = function(doc) {
-	return{
-		filters:{
-			'account_type': 'Payable',
-			'root_type': 'Liability',
-			'is_group': 0,
-			'company': doc.company
+	// filter on Account
+	if (doc.supplier) {
+		return {
+			filters: {
+				'account_type': 'Payable',
+				'is_group': 0,
+				'company': doc.company
+			}
+		}
+	} else {
+		return {
+			filters: {
+				'report_type': 'Balance Sheet',
+				'is_group': 0,
+				'company': doc.company
+			}
 		}
 	}
 }
@@ -232,4 +232,3 @@ cur_frm.cscript.select_print_heading = function(doc,cdt,cdn){
 	else
 		cur_frm.pformat.print_heading = __("Purchase Invoice");
 }
-

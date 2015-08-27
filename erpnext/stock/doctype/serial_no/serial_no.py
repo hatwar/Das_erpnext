@@ -33,7 +33,7 @@ class SerialNo(StockController):
 		self.validate_warehouse()
 		self.validate_item()
 		self.on_stock_ledger_entry()
-		
+
 	def set_maintenance_status(self):
 		if not self.warranty_expiry_date and not self.amc_expiry_date:
 			self.maintenance_status = None
@@ -66,7 +66,7 @@ class SerialNo(StockController):
 			Validate whether serial no is required for this item
 		"""
 		item = frappe.get_doc("Item", self.item_code)
-		if item.has_serial_no!="Yes":
+		if item.has_serial_no!=1:
 			frappe.throw(_("Item {0} is not setup for Serial Nos. Check Item master").format(self.item_code))
 
 		self.item_group = item.item_group
@@ -198,7 +198,7 @@ def process_serial_no(sle):
 	update_serial_nos(sle, item_det)
 
 def validate_serial_no(sle, item_det):
-	if item_det.has_serial_no=="No":
+	if item_det.has_serial_no==0:
 		if sle.serial_no:
 			frappe.throw(_("Item {0} is not setup for Serial Nos. Column must be blank").format(sle.item_code),
 				SerialNoNotRequiredError)
@@ -209,7 +209,7 @@ def validate_serial_no(sle, item_det):
 				frappe.throw(_("Serial No {0} quantity {1} cannot be a fraction").format(sle.item_code, sle.actual_qty))
 
 			if len(serial_nos) and len(serial_nos) != abs(cint(sle.actual_qty)):
-				frappe.throw(_("{0} Serial Numbers required for Item {0}. Only {0} provided.").format(sle.actual_qty, sle.item_code, len(serial_nos)),
+				frappe.throw(_("{0} Serial Numbers required for Item {1}. You have provided {2}.").format(sle.actual_qty, sle.item_code, len(serial_nos)),
 					SerialNoQtyError)
 
 			if len(serial_nos) != len(set(serial_nos)):
@@ -246,7 +246,7 @@ def validate_serial_no(sle, item_det):
 
 def update_serial_nos(sle, item_det):
 	if sle.is_cancelled == "No" and not sle.serial_no and sle.actual_qty > 0 \
-			and item_det.has_serial_no == "Yes" and item_det.serial_no_series:
+			and item_det.has_serial_no == 1 and item_det.serial_no_series:
 		from frappe.model.naming import make_autoname
 		serial_nos = []
 		for i in xrange(cint(sle.actual_qty)):

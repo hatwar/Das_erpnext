@@ -6,10 +6,12 @@ import frappe, json
 from frappe import _
 from frappe.utils import cstr, flt, get_datetime, get_time, getdate
 from dateutil.relativedelta import relativedelta
+from erpnext.manufacturing.doctype.manufacturing_settings.manufacturing_settings import get_mins_between_operations
 
 class OverlapError(frappe.ValidationError): pass
 class OverProductionLoggedError(frappe.ValidationError): pass
 class NotSubmittedError(frappe.ValidationError): pass
+class NegativeHoursError(frappe.ValidationError): pass
 
 from frappe.model.document import Document
 
@@ -101,8 +103,8 @@ class TimeLog(Document):
 		return existing[0] if existing else None
 
 	def validate_timings(self):
-		if self.to_time and self.from_time and get_datetime(self.to_time) < get_datetime(self.from_time):
-			frappe.throw(_("From Time cannot be greater than To Time"))
+		if self.to_time and self.from_time and get_datetime(self.to_time) <= get_datetime(self.from_time):
+			frappe.throw(_("To Time must be greater than From Time"), NegativeHoursError)
 
 	def calculate_total_hours(self):
 		if self.to_time and self.from_time:
@@ -181,9 +183,14 @@ class TimeLog(Document):
 
 	def move_to_next_non_overlapping_slot(self):
 		"""If in overlap, set start as the end point of the overlapping time log"""
-		overlapping = self.get_overlap_for("workstation")
-		if overlapping:
-			self.from_time = get_datetime(overlapping.to_time) + relativedelta(minutes=10)
+		overlapping = self.get_overlap_for("workstation") \
+			or self.get_overlap_for("employee") \
+			or self.get_overlap_for("user")
+
+		if not overlapping:
+			frappe.throw("Logical error: Must find overlapping")
+
+		self.from_time = get_datetime(overlapping.to_time) + get_mins_between_operations()
 
 	def get_time_log_summary(self):
 		"""Returns 'Actual Operating Time'. """

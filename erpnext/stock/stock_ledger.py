@@ -300,7 +300,6 @@ class update_entries_after(object):
 
 				# select first batch or the batch with same rate
 				batch = self.stock_queue[index]
-
 				if qty_to_pop >= batch[0]:
 					# consume current batch
 					qty_to_pop = qty_to_pop - batch[0]
