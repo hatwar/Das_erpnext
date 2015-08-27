@@ -37,22 +37,12 @@ erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend(
 				if(flt(doc.per_delivered, 2) < 100 || doc.per_billed < 100)
 					cur_frm.add_custom_button(__('Stop'), cur_frm.cscript['Stop Sales Order'])
 
-<<<<<<< HEAD
-						// maintenance
-						if(flt(doc.per_delivered, 2) < 100 && ["Sales", "Shopping Cart"].indexOf(doc.order_type)===-1) {
-							cur_frm.add_custom_button(__('Make Maint. Visit'), this.make_maintenance_visit);
-							cur_frm.add_custom_button(__('Make Maint. Schedule'), this.make_maintenance_schedule);
-						}
-				cur_frm.add_custom_button(__('Make Technician Purchase Invoice'), this.make_purchase_invoice, "icon-truck");
-				//custom button
-				cur_frm.add_custom_button(__('Make PO'), this.make_po)
-=======
 					// maintenance
 					if(flt(doc.per_delivered, 2) < 100 && ["Sales", "Shopping Cart"].indexOf(doc.order_type)===-1) {
 						cur_frm.add_custom_button(__('Maint. Visit'), this.make_maintenance_visit);
 						cur_frm.add_custom_button(__('Maint. Schedule'), this.make_maintenance_schedule);
 					}
-
+					
 					// delivery note
 					if(flt(doc.per_delivered, 2) < 100 && ["Sales", "Shopping Cart"].indexOf(doc.order_type)!==-1)
 						cur_frm.add_custom_button(__('Delivery'), this.make_delivery_note).addClass("btn-primary");
@@ -61,7 +51,9 @@ erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend(
 					if(flt(doc.per_billed, 2) < 100) {
 						cur_frm.add_custom_button(__('Invoice'), this.make_sales_invoice).addClass("btn-primary");
 					}
->>>>>>> 10fc83d36984765fc4e59ec1f7c16cde7efe1385
+					cur_frm.add_custom_button(__('Make Technician Purchase Invoice'), this.make_purchase_invoice, "icon-truck");
+					//custom button
+					cur_frm.add_custom_button(__('Make PO'), this.make_po)
 
 			} else {
 				// un-stop
