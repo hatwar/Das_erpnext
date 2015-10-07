@@ -200,7 +200,8 @@ def get_default_expense_account(args, item):
 def get_default_cost_center(args, item):
 	return (frappe.db.get_value("Project", args.get("project_name"), "cost_center")
 		or (item.selling_cost_center if args.get("transaction_type") == "selling" else item.buying_cost_center)
-		or frappe.db.get_value("Item Group", item.item_group, "default_cost_center"))
+		or frappe.db.get_value("Item Group", item.item_group, "default_cost_center")
+		or args.get("cost_center"))
 
 def get_price_list_rate(args, item_doc, out):
 	meta = frappe.get_meta(args.parenttype)
@@ -231,12 +232,16 @@ def insert_item_price(args):
 	if frappe.db.get_value("Price List", args.price_list, "currency") == args.currency \
 		and cint(frappe.db.get_single_value("Stock Settings", "auto_insert_price_list_rate_if_missing")):
 		if frappe.has_permission("Item Price", "write"):
+
+			price_list_rate = args.rate / args.conversion_factor \
+				if args.get("conversion_factor") else args.rate
+
 			item_price = frappe.get_doc({
 				"doctype": "Item Price",
 				"price_list": args.price_list,
 				"item_code": args.item_code,
 				"currency": args.currency,
-				"price_list_rate": args.rate
+				"price_list_rate": price_list_rate
 			})
 			item_price.insert()
 			frappe.msgprint("Item Price added for {0} in Price List {1}".format(args.item_code,
@@ -318,13 +323,14 @@ def get_pos_profile(company):
 
 
 def get_serial_nos_by_fifo(args, item_doc):
-	return "\n".join(frappe.db.sql_list("""select name from `tabSerial No`
-		where item_code=%(item_code)s and warehouse=%(warehouse)s and status='Available'
-		order by timestamp(purchase_date, purchase_time) asc limit %(qty)s""", {
-			"item_code": args.item_code,
-			"warehouse": args.warehouse,
-			"qty": abs(cint(args.qty))
-		}))
+	if frappe.db.get_single_value("Stock Settings", "automatically_set_serial_nos_based_on_fifo"):
+		return "\n".join(frappe.db.sql_list("""select name from `tabSerial No`
+			where item_code=%(item_code)s and warehouse=%(warehouse)s and status='Available'
+			order by timestamp(purchase_date, purchase_time) asc limit %(qty)s""", {
+				"item_code": args.item_code,
+				"warehouse": args.warehouse,
+				"qty": abs(cint(args.qty))
+			}))
 
 def get_actual_batch_qty(batch_no,warehouse,item_code):
 	actual_batch_qty = 0

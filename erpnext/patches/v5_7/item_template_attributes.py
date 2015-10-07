@@ -40,8 +40,8 @@ def rename_and_reload_doctypes():
 
 	frappe.reload_doctype("Item")
 	frappe.reload_doc("Stock", "DocType", "Item Variant Attribute")
-	frappe.reload_doctype("Item Attribute Value")
-	frappe.reload_doctype("Item Attribute")
+	frappe.reload_doc("Stock", "DocType", "Item Attribute Value")
+	frappe.reload_doc("Stock", "DocType", "Item Attribute")
 
 def migrate_manage_variants():
 	item_attribute = {}
@@ -72,8 +72,6 @@ def migrate_item_variants():
 		for attribute, value in item_attributes:
 			attribute_value_options.setdefault(attribute, []).append(value)
 
-		save_attributes_in_template(item, attribute_value_options)
-
 		possible_combinations = get_possible_combinations(attribute_value_options)
 
 		for variant in all_variants:
@@ -88,6 +86,8 @@ def migrate_item_variants():
 					# found the right variant
 					save_attributes_in_variant(variant, combination)
 					break
+
+		save_attributes_in_template(item, attribute_value_options)
 
 	frappe.delete_doc("DocType", "Item Variant")
 
