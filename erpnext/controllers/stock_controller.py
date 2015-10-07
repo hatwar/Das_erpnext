@@ -46,22 +46,22 @@ class StockController(AccountsController):
 						# from warehouse account
 
 						self.check_expense_account(detail)
-
+						
 						gl_list.append(self.get_gl_dict({
-							"account": warehouse_account[sle.warehouse],
+							"account": warehouse_account[sle.warehouse]["name"],
 							"against": detail.expense_account,
 							"cost_center": detail.cost_center,
 							"remarks": self.get("remarks") or "Accounting Entry for Stock",
-							"debit": flt(sle.stock_value_difference, 2)
-						}))
+							"debit": flt(sle.stock_value_difference, 2),
+						}, warehouse_account[sle.warehouse]["account_currency"]))
 
-						# to target warehouse / expense account
+						# to target warehouse / expense account						
 						gl_list.append(self.get_gl_dict({
 							"account": detail.expense_account,
-							"against": warehouse_account[sle.warehouse],
+							"against": warehouse_account[sle.warehouse]["name"],
 							"cost_center": detail.cost_center,
 							"remarks": self.get("remarks") or "Accounting Entry for Stock",
-							"credit": flt(sle.stock_value_difference, 2)
+							"credit": flt(sle.stock_value_difference, 2),
 						}))
 					elif sle.warehouse not in warehouse_with_no_account:
 						warehouse_with_no_account.append(sle.warehouse)
@@ -69,7 +69,7 @@ class StockController(AccountsController):
 		if warehouse_with_no_account:
 			msgprint(_("No accounting entries for the following warehouses") + ": \n" +
 				"\n".join(warehouse_with_no_account))
-
+		
 		return process_gl_map(gl_list)
 
 	def get_voucher_details(self, default_expense_account, default_cost_center, sle_map):
@@ -227,7 +227,7 @@ class StockController(AccountsController):
 			incoming_rate = incoming_rate[0][0] if incoming_rate else 0.0
 
 		return incoming_rate
-			
+
 	def update_reserved_qty(self):
 		so_map = {}
 		for d in self.get("items"):
@@ -242,22 +242,23 @@ class StockController(AccountsController):
 				sales_order = frappe.get_doc("Sales Order", so)
 
 				if sales_order.status in ["Stopped", "Cancelled"]:
-					frappe.throw(_("Sales Order {0} is cancelled or stopped").format(so), frappe.InvalidStatusError)
-				
+					frappe.throw(_("{0} {1} is cancelled or stopped").format(_("Sales Order"), so),
+						frappe.InvalidStatusError)
+
 				sales_order.update_reserved_qty(so_item_rows)
-				
+
 	def update_stock_ledger(self):
 		self.update_reserved_qty()
-		
+
 		sl_entries = []
 		for d in self.get_item_list():
 			if frappe.db.get_value("Item", d.item_code, "is_stock_item") == 1 \
 					and d.warehouse and flt(d['qty']):
-				
+
 				incoming_rate = 0
 				if cint(self.is_return) and self.return_against and self.docstatus==1:
 					incoming_rate = self.get_incoming_rate_for_sales_return(d.item_code, self.return_against)
-					
+
 				sl_entries.append(self.get_sl_entries(d, {
 					"actual_qty": -1*flt(d['qty']),
 					"stock_uom": frappe.db.get_value("Item", d.item_code, "stock_uom"),
@@ -335,6 +336,9 @@ def get_voucherwise_gl_entries(future_stock_vouchers, posting_date):
 	return gl_entries
 
 def get_warehouse_account():
-	warehouse_account = dict(frappe.db.sql("""select warehouse, name from tabAccount
-		where account_type = 'Warehouse' and ifnull(warehouse, '') != ''"""))
+	warehouse_account = frappe._dict()
+	
+	for d in frappe.db.sql("""select warehouse, name, account_currency from tabAccount
+		where account_type = 'Warehouse' and ifnull(warehouse, '') != ''""", as_dict=1):
+			warehouse_account.setdefault(d.warehouse, d)
 	return warehouse_account

@@ -9,6 +9,7 @@ from frappe.utils import nowdate
 
 def get_filters_cond(doctype, filters, conditions):
 	if filters:
+		flt = filters
 		if isinstance(filters, dict):
 			filters = filters.items()
 			flt = []
@@ -268,7 +269,7 @@ def get_batch_no(doctype, txt, searchfield, start, page_len, filters):
 			{0}
 			{match_conditions}
 			order by expiry_date, name desc
-			limit %(start)s, %(page_len)s""".format(cond, match_conditions=get_match_cond(doctype)), args, debug=1)
+			limit %(start)s, %(page_len)s""".format(cond, match_conditions=get_match_cond(doctype)), args)
 
 def get_account_list(doctype, txt, searchfield, start, page_len, filters):
 	filter_list = []
