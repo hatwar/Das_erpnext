@@ -2,7 +2,7 @@
 // License: GNU General Public License v3. See license.txt
 
 {% include 'selling/sales_common.js' %}
-{% include 'das/das_commons.js' %};
+{% include 'das/das_commons.js' %}
 
 frappe.ui.form.on("Sales Order", {
 	onload: function(frm) {
@@ -42,7 +42,7 @@ erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend(
 						cur_frm.add_custom_button(__('Maint. Visit'), this.make_maintenance_visit);
 						cur_frm.add_custom_button(__('Maint. Schedule'), this.make_maintenance_schedule);
 					}
-
+					
 					// delivery note
 					if(flt(doc.per_delivered, 2) < 100 && ["Sales", "Shopping Cart"].indexOf(doc.order_type)!==-1)
 						cur_frm.add_custom_button(__('Delivery'), this.make_delivery_note).addClass("btn-primary");
@@ -51,8 +51,9 @@ erpnext.selling.SalesOrderController = erpnext.selling.SellingController.extend(
 					if(flt(doc.per_billed, 2) < 100) {
 						cur_frm.add_custom_button(__('Invoice'), this.make_sales_invoice).addClass("btn-primary");
 					}
-					// Purchase invoice
-					cur_frm.add_custom_button(__('Make Technician Purchase Invoice'), this.make_purchase_invoice, "icon-truck");
+					cur_frm.add_custom_button(__('Make Technician Purchase Invoice'), this.make_purchase_invoice, "icon-truck").addClass("btn-primary");
+					//custom button
+					cur_frm.add_custom_button(__('Make PO'), this.make_po).addClass("btn-primary");
 
 			} else {
 				// un-stop
