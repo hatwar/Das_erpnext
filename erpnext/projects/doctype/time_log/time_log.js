@@ -17,6 +17,8 @@ frappe.ui.form.on("Time Log", "refresh", function(frm) {
 	if (frm.doc.__islocal && !frm.doc.user) {
 		frm.set_value("user", user);
 	}
+
+	frm.toggle_reqd("activity_type", !frm.doc.for_manufacturing);
 });
 
 
@@ -42,7 +44,7 @@ frappe.ui.form.on("Time Log", "before_save", function(frm) {
 frappe.ui.form.on("Time Log", "to_time", function(frm) {
 	if(frm._setting_hours) return;
 	frm.set_value("hours", moment(cur_frm.doc.to_time).diff(moment(cur_frm.doc.from_time),
-		"hours"));
+		"minutes") / 60);
 
 });
 
@@ -98,5 +100,5 @@ cur_frm.fields_dict['task'].get_query = function(doc) {
 		filters:{
 			'project': doc.project
 		}
-	}	
+	}
 }

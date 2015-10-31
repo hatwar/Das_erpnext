@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe import _
 
-from frappe.utils import cint, cstr, date_diff, flt, formatdate, getdate, get_url_to_form, \
+from frappe.utils import cint, cstr, date_diff, flt, formatdate, getdate, get_link_to_form, \
 	comma_or, get_fullname
 from frappe import msgprint
 from erpnext.hr.utils import set_employee_name
@@ -164,7 +164,7 @@ class LeaveApplication(Document):
 
 		def _get_message(url=False):
 			if url:
-				name = get_url_to_form(self.doctype, self.name)
+				name = get_link_to_form(self.doctype, self.name)
 			else:
 				name = self.name
 
@@ -184,8 +184,8 @@ class LeaveApplication(Document):
 			name = self.name
 			employee_name = cstr(employee.employee_name)
 			if url:
-				name = get_url_to_form(self.doctype, self.name)
-				employee_name = get_url_to_form("Employee", self.employee, label=employee_name)
+				name = get_link_to_form(self.doctype, self.name)
+				employee_name = get_link_to_form("Employee", self.employee, label=employee_name)
 
 			return (_("New Leave Application") + ": %s - " + _("Employee") + ": %s") % (name, employee_name)
 
@@ -238,10 +238,16 @@ def get_total_leave_days(leave_app):
 	ret = {'total_leave_days' : 0.5}
 	if not leave_app.half_day:
 		tot_days = date_diff(leave_app.to_date, leave_app.from_date) + 1
-		holidays = leave_app.get_holidays()
-		ret = {
-			'total_leave_days' : flt(tot_days)-flt(holidays)
-		}
+		if frappe.db.get_value("Leave Type", leave_app.leave_type, "include_holiday"):
+			ret = {
+				'total_leave_days' : flt(tot_days)
+			}
+		else:
+			holidays = leave_app.get_holidays()
+			ret = {
+				'total_leave_days' : flt(tot_days)-flt(holidays)
+			}
+
 	return ret
 
 @frappe.whitelist()

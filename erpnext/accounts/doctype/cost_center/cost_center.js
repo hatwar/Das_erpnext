@@ -17,8 +17,7 @@ erpnext.accounts.CostCenterController = frappe.ui.form.Controller.extend({
 				return {
 					filters:[
 						['Account', 'company', '=', me.frm.doc.company],
-						['Account', 'report_type', '=', 'Profit and Loss'],
-						['Account', 'is_group', '=', '0'],
+						['Account', 'is_group', '=', '0']
 					]
 				}
 			});
