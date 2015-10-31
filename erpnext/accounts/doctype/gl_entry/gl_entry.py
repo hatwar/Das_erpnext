@@ -152,13 +152,8 @@ def update_outstanding_amt(account, party_type, party, against_voucher_type, aga
 		select sum(ifnull(debit_in_account_currency, 0)) - sum(ifnull(credit_in_account_currency, 0))
 		from `tabGL Entry`
 		where against_voucher_type=%s and against_voucher=%s
-<<<<<<< HEAD
-		and account = %s and party_type=%s and party=%s""",
-		(against_voucher_type, against_voucher, account, party_type, party))[0][0] or 0.0)
-=======
 		and account = %s {0}""".format(party_condition),
 		(against_voucher_type, against_voucher, account))[0][0] or 0.0)
->>>>>>> c39cef363c0547b8e494748fbc99b4df2b7b6326
 
 	if against_voucher_type == 'Purchase Invoice':
 		bal = -bal
