@@ -2135,7 +2135,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 1, 
- "modified": "2015-10-29 02:25:26.256373", 
+ "modified": "2015-11-03 12:35:51.432700", 
  "modified_by": "Administrator", 
  "module": "Stock", 
  "name": "Item", 
@@ -2155,7 +2155,7 @@
    "print": 1, 
    "read": 1, 
    "report": 1, 
-   "role": "Item Manager", 
+   "role": "Material Master Manager", 
    "set_user_permissions": 0, 
    "share": 1, 
    "submit": 0, 
@@ -2183,7 +2183,7 @@
   }, 
   {
    "amend": 0, 
-   "apply_user_permissions": 0, 
+   "apply_user_permissions": 1, 
    "cancel": 0, 
    "create": 0, 
    "delete": 0, 
@@ -2203,7 +2203,7 @@
   }, 
   {
    "amend": 0, 
-   "apply_user_permissions": 0, 
+   "apply_user_permissions": 1, 
    "cancel": 0, 
    "create": 0, 
    "delete": 0, 
@@ -2223,7 +2223,7 @@
   }, 
   {
    "amend": 0, 
-   "apply_user_permissions": 0, 
+   "apply_user_permissions": 1, 
    "cancel": 0, 
    "create": 0, 
    "delete": 0, 
@@ -2243,7 +2243,7 @@
   }, 
   {
    "amend": 0, 
-   "apply_user_permissions": 0, 
+   "apply_user_permissions": 1, 
    "cancel": 0, 
    "create": 0, 
    "delete": 0, 
@@ -2263,7 +2263,7 @@
   }, 
   {
    "amend": 0, 
-   "apply_user_permissions": 0, 
+   "apply_user_permissions": 1, 
    "cancel": 0, 
    "create": 0, 
    "delete": 0, 
@@ -2283,7 +2283,7 @@
   }, 
   {
    "amend": 0, 
-   "apply_user_permissions": 0, 
+   "apply_user_permissions": 1, 
    "cancel": 0, 
    "create": 0, 
    "delete": 0, 
