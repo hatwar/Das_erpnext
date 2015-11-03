@@ -147,6 +147,8 @@ class Account(Document):
 					self.validate_warehouse(old_warehouse)
 				if self.warehouse:
 					self.validate_warehouse(self.warehouse)
+		elif self.warehouse:
+			self.warehouse = None
 
 	def validate_warehouse(self, warehouse):
 		if frappe.db.get_value("Stock Ledger Entry", {"warehouse": warehouse}):
@@ -210,6 +212,8 @@ def get_parent_account(doctype, txt, searchfield, start, page_len, filters):
 
 def get_account_currency(account):
 	"""Helper function to get account currency"""
+	if not account:
+		return
 	def generator():
 		account_currency, company = frappe.db.get_value("Account", account, ["account_currency", "company"])
 		if not account_currency:

@@ -6,7 +6,7 @@ import frappe
 from frappe.model.naming import make_autoname
 from frappe import _, msgprint, throw
 import frappe.defaults
-from frappe.utils import flt
+from frappe.utils import flt, cint, cstr
 from frappe.desk.reportview import build_match_conditions
 from erpnext.utilities.transaction_base import TransactionBase
 from erpnext.utilities.address_and_contact import load_address_and_contact
@@ -23,12 +23,21 @@ class Customer(TransactionBase):
 	def autoname(self):
 		cust_master_name = frappe.defaults.get_global_default('cust_master_name')
 		if cust_master_name == 'Customer Name':
-			self.name = self.customer_name
+			self.name = self.get_customer_name()
 		else:
 			if not self.naming_series:
 				frappe.throw(_("Series is mandatory"), frappe.MandatoryError)
 
 			self.name = make_autoname(self.naming_series+'.#####')
+			
+	def get_customer_name(self):
+		if frappe.db.get_value("Customer", self.customer_name):
+			count = frappe.db.sql("""select ifnull(max(SUBSTRING_INDEX(name, ' ', -1)), 0) from tabCustomer
+				 where name like  '%{0} - %'""".format(self.customer_name), as_list=1)[0][0]
+			count = cint(count) + 1
+			return "{0} - {1}".format(self.customer_name, cstr(count))
+		
+		return self.customer_name
 
 	def validate(self):
 		self.flags.is_new_doc = self.is_new()
@@ -212,7 +221,7 @@ def get_customer_outstanding(customer, company):
 			from `tabSales Invoice Item`
 			where dn_detail = %s and docstatus = 1""", dn_item.name)[0][0]
 
-		if flt(dn_item.amount) > flt(si_amount):
+		if flt(dn_item.amount) > flt(si_amount) and dn_item.base_net_total:
 			outstanding_based_on_dn += ((flt(dn_item.amount) - flt(si_amount)) \
 				/ dn_item.base_net_total) * dn_item.base_grand_total
 
