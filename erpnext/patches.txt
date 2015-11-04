@@ -190,7 +190,6 @@ erpnext.patches.v5_4.fix_missing_item_images
 erpnext.patches.v5_4.stock_entry_additional_costs
 erpnext.patches.v5_4.cleanup_journal_entry #2015-08-14
 execute:frappe.db.sql("update `tabProduction Order` pro set description = (select description from tabItem where name=pro.production_item) where ifnull(description, '') = ''")
-erpnext.patches.v5_7.item_template_attributes
 execute:frappe.delete_doc_if_exists("DocType", "Manage Variants")
 execute:frappe.delete_doc_if_exists("DocType", "Manage Variants Item")
 erpnext.patches.v4_2.repost_reserved_qty #2015-08-20
