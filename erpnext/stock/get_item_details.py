@@ -80,7 +80,7 @@ def process_args(args):
 
 	if not args.get("transaction_type"):
 		if args.get("parenttype")=="Material Request" or \
-				frappe.get_meta(args.get("parenttype")).get_field("supplier"):
+				(frappe.get_meta(args.get("parenttype")).get_field("supplier") and args.get("parenttype") != "Delivery Note"):
 			args.transaction_type = "buying"
 		else:
 			args.transaction_type = "selling"
